@@ -3,8 +3,8 @@ Contributors: jeangalea
 Plugin URI: http://www.jeangalea.com
 Tags: genesis, multiple authors, co-authors, co authors plus, co-authors plus
 Requires at least: 3.0
-Tested up to: 3.5
-Stable tag: 1.0
+Tested up to: 3.7
+Stable tag: 1.3
 Enables full support for the Co-Authors Plus plugin in Genesis.
 
 == Description ==
@@ -18,10 +18,10 @@ the Genesis author box to detect co-authors and display them in additional autho
 
 With this setup, you can create guest authors without creating a user profile for them, just create a 'Guest Author' via the Co-Authors Plus plugin, and include that guest author in your post. Genesis Co-Authors Plus will then take care of displaying the guest author/s on the front end.
 
-To enable the Genesis author box please follow the [instructions on the StudioPress website](http://my.studiopress.com/snippets/author-box/). 
+To enable the Genesis author box please follow the [instructions on this website](http://slickwp.com/add-author-box-genesis-blog/). 
 
 = Credit = 
-Created by Jean Galea. Need a [WordPress Freelance Developer](http://www.jeangalea.com/services/wordpress-consultancy-development/)?
+Created by Jean Galea. Also take a look at my [WordPress RSS Import plugin](http://www.wprssaggregator.com/)
 
 == Installation ==
 
@@ -30,6 +30,16 @@ Created by Jean Galea. Need a [WordPress Freelance Developer](http://www.jeangal
 3. Enjoy multiple author boxes!
 
 == Changelog ==
+
+= Version 1.3 (2014-02-22) =
+* Added support for HTML5
+* Added filter
+
+= Version 1.2 (2013-09-17) =
+* Changed action hook as Genesis was updated.
+
+= Version 1.1 (2013-09-07) =
+* Adding Co-Authors Plus Template Tags to WP frontend
 
 = Version 1.0 (2013-01-12) =
 * First release.
