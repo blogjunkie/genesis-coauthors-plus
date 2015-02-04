@@ -65,6 +65,59 @@ function gcap_add_enable_author_box_option($fields, $groups) {
 
 
 /**
+ * Since the author box is now controlled via Co-Authors Plus, 
+ * remove the Author Archive Settings from user settings page
+ * 
+ * @author David Wang
+ */
+add_action( 'init', 'gcap_remove_genesis_author_archive_settings' );
+
+function gcap_remove_genesis_author_archive_settings() {
+	remove_action( 'show_user_profile', 'genesis_user_archive_fields' );
+	remove_action( 'edit_user_profile', 'genesis_user_archive_fields' );
+}
+
+
+/**
+ * Archive pages for Guest Authors do not obey WordPress SEO's title template, 
+ * so we set them to output "Author Name&#39;s articles on Site Name"
+ * 
+ * @author David Wang
+ */
+add_filter('wpseo_title', 'gcap_co_author_wseo_title');
+function gcap_co_author_wseo_title( $title ) {
+	
+	// Only filter title output for author pages
+	if ( is_author() && function_exists( 'get_coauthors' ) ) {
+		$qo = get_queried_object();
+		$author_name = $qo->display_name;
+		return $author_name . '&#39;s articles on ' . get_bloginfo('name');
+	}
+	return $title;
+	
+}
+
+
+/**
+ * Filter meta description for Guest Author archive pages to display Bio
+ * 
+ * @author David Wang
+ */
+add_filter('wpseo_metadesc', 'gcap_co_author_wseo_metadesc');
+function gcap_co_author_wseo_metadesc( $description ) {
+	
+	// Only filter title output for author pages
+	if ( is_author() && function_exists( 'get_coauthors' ) ) {
+		$qo = get_queried_object();
+		$author_bio = $qo->description;
+		return $author_bio;
+	}
+	return $description;
+	
+}
+
+
+/**
  * Post Authors Post Link Shortcode
  * 
  * @param array $atts
