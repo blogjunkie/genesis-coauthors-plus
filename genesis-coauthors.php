@@ -35,6 +35,36 @@
 
 
 /**
+ * Adding checkboxes to the Guest Author's add new / edit screen
+ * 
+ * @author David Wang
+ */
+add_filter( 'coauthors_guest_author_fields', 'gcap_add_enable_author_box_option', 10, 2 );
+
+function gcap_add_enable_author_box_option($fields, $groups) {
+
+    if ( in_array( 'all', $groups ) || in_array( 'name', $groups ) ) {
+        $fields[] = array(
+            'key' => 'enable_author_box',
+            'label' => 'Display Author Box at the end of author\'s posts?',
+            'input' => 'checkbox',
+            'type' => 'checkbox',
+            'group' => 'name',
+        );
+		$fields[] = array(
+            'key' => 'enable_author_box_archive',
+            'label' => 'Display Author Box at the top of author\'s archive page?',
+            'input' => 'checkbox',
+            'type' => 'checkbox',
+            'group' => 'name',
+        );
+    }
+
+    return $fields;
+}
+
+
+/**
  * Post Authors Post Link Shortcode
  * 
  * @param array $atts
@@ -100,7 +130,32 @@ function gcap_author_box() {
 
 	else gcap_do_author_box( 'single', get_the_author_ID() );	
 }
- 
+
+
+/** 
+ * Display Author Box on author archive
+ *
+ * @author David Wang
+ */
+add_action( 'genesis_before_loop', 'gcap_do_author_box_archive', 15 );
+function gcap_do_author_box_archive() {
+	
+	if ( ! is_author() )
+		return;
+	
+	if ( function_exists( 'get_coauthors' ) ) {
+
+		$authors = get_coauthors();
+		
+		if( ! $authors[0]->enable_author_box_archive || get_query_var( 'paged' ) >= 2 )
+	        return;
+        		
+		gcap_do_author_box( 'archive', $authors[0] );
+		
+	}
+    
+}
+
 
 /**
  * Display Author Box
@@ -112,9 +167,18 @@ function gcap_do_author_box( $context = '', $author, $echo = true ) {
  
 	if( ! $author ) 
 		return;
+		
+	// check only for single post pages, archive check is performed in gcap_do_author_box_archive()
+    if( ! $author->enable_author_box && is_single() )
+        return;
 
+    if( has_post_thumbnail( $author->ID ) ) {
+        $gravatar = get_the_post_thumbnail( $author->ID, array(70,70), array('class' => 'avatar' ) );
+    } else {
 	$gravatar_size = apply_filters( 'genesis_author_box_gravatar_size', 70, $context );
 	$gravatar      = get_avatar( $author->user_email , $gravatar_size );
+    }
+
 	$description   = wpautop( $author->description );
 
 	//* The author box markup, contextual
@@ -142,4 +206,83 @@ function gcap_do_author_box( $context = '', $author, $echo = true ) {
 		echo $output;
 	else
 		return $output;
+}
+
+
+/**
+ * Output Co-Authors Plus names on [post_author] shortcode
+ */
+add_filter( 'genesis_post_author_shortcode', 'gcap_coauthors_filter', 10, 1 );
+function gcap_coauthors_filter( $output ) {
+    if ( function_exists( 'coauthors' ) ) {
+        return coauthors( null, null, '<span class="entry-author-name" itemprop="name">', '</span>', false );
+    } else {
+		return $output;
+    }
+}
+
+/**
+ * Output Co-Authors Plus names on [post_author_posts_link] shortcode
+ */
+add_filter( 'genesis_post_author_posts_link_shortcode', 'gcap_coauthors_posts_links_filter', 10, 1 );
+function gcap_coauthors_posts_links_filter( $output ) {
+    if ( function_exists( 'coauthors_posts_links' ) ) {
+        return coauthors_posts_links( null, null, '<span class="entry-author-name" itemprop="name">', '</span>', false );
+    } else {
+        return $output;
+    }
+}
+
+/**
+ * Output Co-Authors Plus names on [post_author_link] shortcode
+ */
+//we need to remove post_author_link shortcode added by genesis because if no url is present on the user meta, it automatically calls the post_author shortcode
+add_action( 'after_setup_theme', 'gcp_handle_shortcodes', 10 );
+function gcp_handle_shortcodes() {
+
+    remove_shortcode( 'post_author_link' );
+
+    add_shortcode( 'post_author_link', 'gcap_post_author_link_handler' );
+
+}
+
+function gcap_post_author_link_handler() {
+
+    /*
+     * coauthors_links depends on the url meta of the author and not really on the 'website' field inside the co author admin area. So we need to create a custom one
+     */
+    if( function_exists( 'coauthors_links' ) ) {
+        //return coauthors_links( null, null, '<span class="entry-author-name" itemprop="name">', '</span>', false );
+
+        $authors = get_coauthors();
+        $content = '';
+        $counter = 1;
+
+        foreach( $authors as $author ) {
+
+            if( empty( $author->website ) ) {
+                $content .= $author->display_name;
+            } else {
+                $content .= sprintf( '<a href="%s" title="%s" rel="external">%s</a>',
+                    $author->website,
+                    esc_attr( sprintf(__("Visit %s&#8217;s website"), $author->display_name) ),
+                    $author->display_name
+                );
+            }
+
+            $counter++;
+
+            if( $counter == count( $authors ) )
+                $content .= ' and ';
+            else if( $counter > count( $authors ) )
+                $content .= '';
+            else
+                $content .= ', ';
+        }
+        return $content;
+
+    } else {
+        return genesis_post_author_link_shortcode();
+    }
+
 }
